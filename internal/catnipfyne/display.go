@@ -2,11 +2,12 @@ package catnipfyne
 
 import (
 	"image"
-	"log"
+	"image/color"
 	"math"
 	"sync"
 
 	"fyne.io/fyne/v2/canvas"
+	"github.com/llgcode/draw2d"
 	"github.com/noriah/catnip/input"
 	"libdb.so/catnip-fyne/internal/vecd"
 
@@ -55,6 +56,10 @@ func NewDisplay(sampleRate float64, sampleSize int) *Display {
 		d.drawer.Resize(x, y)
 		d.drawer.Clear()
 
+		d.drawer.SetStrokeColor(color.RGBA{255, 255, 255, 255})
+		d.drawer.SetLineWidth(25)
+		d.drawer.SetLineCap(draw2d.RoundCap)
+
 		d.width = x
 		d.height = y
 		d.draw()
@@ -63,7 +68,7 @@ func NewDisplay(sampleRate float64, sampleSize int) *Display {
 	})
 	d.Raster.ScaleMode = canvas.ImageScaleFastest
 
-	d.SetSizes(100, 50)
+	d.SetSizes(75, 5)
 	return d
 }
 
@@ -94,14 +99,12 @@ func (d *Display) Write(bins [][]float64, nchannels int) error {
 
 	for i := 0; i < nchannels; i++ {
 		for _, val := range bins[i][:nbins] {
-			log.Println(val)
 			if val > peak {
 				peak = val
 			}
 		}
 	}
 
-	log.Println("peak =", peak)
 	d.peak = peak
 	d.nchannels = nchannels
 
@@ -148,9 +151,6 @@ func (d *Display) drawHorizontally(bins [][]float64, nchannels int, absScale flo
 	scale := hf / absScale
 	nbars := d.bins(d.nchannels)
 
-	log.Println("nbars =", nbars)
-	_ = scale
-
 	// Round up the width so we don't draw a partial bar.
 	xColMax := math.Round(wf/d.binWidth) * d.binWidth
 
@@ -158,10 +158,9 @@ func (d *Display) drawHorizontally(bins [][]float64, nchannels int, absScale flo
 	xCol := (d.binWidth)/2 + (wf-xColMax)/2
 
 	for _, chBins := range bins {
-		_ = chBins
 		for xBin < nbars && xBin >= 0 && xCol < xColMax {
-			// stop := calculateBar(chBins[xBin]*scale, hf)
-			// d.drawBar(xCol, hf, stop)
+			stop := calculateBar(chBins[xBin]*scale, hf)
+			d.drawBar(xCol, hf, stop)
 
 			xCol += d.binWidth
 			xBin += delta
@@ -176,7 +175,6 @@ func (d *Display) drawBar(xCol, to, from float64) {
 	d.drawer.MoveTo(xCol, from)
 	d.drawer.LineTo(xCol, to)
 	d.drawer.Stroke()
-	log.Println("drawBar", xCol, "from", from, "to", to)
 }
 
 func calculateBar(value, height float64) float64 {

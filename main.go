@@ -20,7 +20,7 @@ func main() {
 
 	config := catnip.Config{
 		Backend:      "pipewire",
-		Device:       "",
+		Device:       "spotify",
 		SampleRate:   44100,
 		SampleSize:   1024,
 		ChannelCount: 2,
@@ -51,7 +51,7 @@ func main() {
 		SampleRate:      config.SampleRate,
 		SampleSize:      config.SampleSize,
 		ChannelCount:    config.ChannelCount,
-		SmoothingFactor: 64.15,
+		SmoothingFactor: 0.6415,
 		SmoothingMethod: dsp.SmoothSimpleAverage,
 	})
 
